@@ -24,7 +24,7 @@ Optim'Fiscale permet de comparer automatiquement 6 scénarios juridiques et fisc
 rémunération d'un dirigeant, afin d'identifier la structure la plus avantageuse.
 
 ## 2. Connexion et rôles utilisateurs
-[CAPTURE D'ÉCRAN ICI — page de connexion]
+![page de connexion](captures/01_connexion.png)
 
 Trois rôles existent :
 - **Administrateur** : gère les utilisateurs et les paramètres fiscaux
@@ -32,13 +32,12 @@ Trois rôles existent :
 - **Client** : consulte ses propres dossiers
 
 ## 3. Tableau de bord
-[CAPTURE D'ÉCRAN ICI — dashboard avec KPI et graphique]
+![Tableau de bord](captures/02_dashboard.png)
 
 Affiche le nombre de dossiers, leur statut, et un graphique de comparaison du dernier dossier créé.
 
 ## 4. Créer un nouveau dossier
-[CAPTURE D'ÉCRAN ICI — formulaire de création]
-
+![Formulaire de creation d'un dossier](captures/03_creation_dossier.png)
 Étapes :
 1. Cliquer sur "Nouveau dossier"
 2. Renseigner le nom du dossier, l'entreprise, le dirigeant
@@ -47,27 +46,27 @@ Affiche le nombre de dossiers, leur statut, et un graphique de comparaison du de
 5. Valider — les 6 scénarios sont calculés automatiquement
 
 ## 5. Consulter le comparatif des scénarios
-[CAPTURE D'ÉCRAN ICI — page de détail du dossier avec tableau et graphique]
+![Comparatif des 6 scenarios](captures/04_comparatif_scenarios.png)
 
 Le scénario optimal (net dirigeant le plus élevé) est surligné en vert.
 
 ## 6. Modifier / supprimer un dossier
-[CAPTURE D'ÉCRAN ICI — formulaire de modification]
+![Modification d'un dossier](captures/05_modifier_dossier.png)
 
 La suppression est réservée aux administrateurs et est définitive.
 
 ## 7. Exporter en PDF et Excel/CSV
-[CAPTURE D'ÉCRAN ICI — boutons d'export]
+![Export PDF et Excel/CSV](captures/06_export.png)
 
 Le PDF contient le rapport complet ; le CSV s'ouvre directement dans Excel.
 
 ## 8. Administration : paramètres fiscaux
-[CAPTURE D'ÉCRAN ICI — page paramètres]
+![Parametres fiscaux](captures/07_parametres.png)
 
 Permet d'ajuster les taux (IS, IPRES, CSS, barème IR...) sans modifier le code.
 
 ## 9. Administration : gestion des utilisateurs
-[CAPTURE D'ÉCRAN ICI — page utilisateurs]
+![Gestion des utilisateurs](captures/08_utilisateurs.png)
 
 Création de comptes conseiller/client, activation/désactivation.
 
