@@ -1,0 +1,9 @@
+{
+    "name": "esp-dakar/optim-fiscale",
+    "description": "Plateforme d'optimisation fiscale pour dirigeants et entreprises - Projet Master CCA",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "dompdf/dompdf": "^3.0"
+    }
+}

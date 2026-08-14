@@ -1,0 +1,5 @@
+/php/vendor/
+/php/composer.lock
+.DS_Store
+*.log
+/php/pages/generer_hash.php
