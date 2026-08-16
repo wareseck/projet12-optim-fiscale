@@ -333,6 +333,7 @@ require_once __DIR__ . '/../includes/header.php';
 <?php endif; ?>
 
 <script>
+ window.addEventListener('load', function() {
 new Chart(document.getElementById('graphScenarios'), {
     type: 'bar',
     data: {
@@ -375,6 +376,7 @@ new Chart(document.getElementById('graphScenarios'), {
             title: { display: true, text: "Répartition empilée : prélèvements + net dirigeant par scénario" }
         }
     }
+});
 });
 </script>
 
