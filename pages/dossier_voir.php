@@ -100,6 +100,67 @@ foreach ($scenarios as $scenario) {
     }
 }
 
+// ============================================================
+// Analyse de sensibilité : impact d'une variation du CA et du taux d'IS
+// (calcul indicatif à la volée, non persisté en base)
+// ============================================================
+$variationsCA = [-0.20, 0, 0.20];
+$sensibiliteCA = [];
+foreach ($variationsCA as $var) {
+    $hypVariante = $hypotheses;
+    $hypVariante['chiffre_affaires'] = (float) $hypotheses['chiffre_affaires'] * (1 + $var);
+    $hypVariante['resultat_avant_remuneration'] = (float) $hypotheses['resultat_avant_remuneration'] * (1 + $var);
+
+    $meilleurNet = null;
+    $meilleurLibelle = null;
+    foreach ($scenarios as $scenario) {
+        $res = calculerScenario($scenario['code'], $hypVariante, $parametres, $bareme, 0.6, 1.0);
+        if ($meilleurNet === null || $res['remuneration_nette_dirigeant'] > $meilleurNet) {
+            $meilleurNet = $res['remuneration_nette_dirigeant'];
+            $meilleurLibelle = $scenario['libelle'];
+        }
+    }
+    $sensibiliteCA[] = [
+        'variation'         => $var,
+        'ca'                => $hypVariante['chiffre_affaires'],
+        'meilleur_scenario' => $meilleurLibelle,
+        'net_optimal'       => $meilleurNet,
+    ];
+}
+
+$variationsTauxIS = [-0.02, 0, 0.02];
+$sensibiliteIS = [];
+foreach ($variationsTauxIS as $var) {
+    $paramVariant = $parametres;
+    $paramVariant['taux_IS'] = ($parametres['taux_IS'] ?? 0.30) + $var;
+
+    $meilleurNetIS = null;
+    $meilleurLibelleIS = null;
+    foreach (['SARL_MINO', 'SARL_MAJO', 'SA', 'HOLDING'] as $codeSociete) {
+        $scenarioSociete = null;
+        foreach ($scenarios as $s) {
+            if ($s['code'] === $codeSociete) {
+                $scenarioSociete = $s;
+                break;
+            }
+        }
+        if (!$scenarioSociete) {
+            continue;
+        }
+        $res = calculerScenario($codeSociete, $hypotheses, $paramVariant, $bareme, 0.6, 1.0);
+        if ($meilleurNetIS === null || $res['remuneration_nette_dirigeant'] > $meilleurNetIS) {
+            $meilleurNetIS = $res['remuneration_nette_dirigeant'];
+            $meilleurLibelleIS = $scenarioSociete['libelle'];
+        }
+    }
+    $sensibiliteIS[] = [
+        'variation'         => $var,
+        'taux_is'           => $paramVariant['taux_IS'],
+        'meilleur_scenario' => $meilleurLibelleIS,
+        'net_optimal'       => $meilleurNetIS,
+    ];
+}
+
 $titrePage = $dossier['nom_dossier'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -179,8 +240,64 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="card p-3 mb-4">
-    <h5>Graphique comparatif</h5>
+    <h5>Graphique comparatif (répartition empilée des prélèvements)</h5>
     <canvas id="graphScenarios" height="100"></canvas>
+</div>
+
+<div class="card p-3 mb-4">
+    <h5>Analyse de sensibilité</h5>
+    <p class="text-muted small">
+        Impact indicatif d'une variation du chiffre d'affaires et du taux d'IS sur le meilleur scénario
+        (calcul à la volée, non enregistré en base).
+    </p>
+
+    <h6 class="mt-3">Variation du chiffre d'affaires</h6>
+    <div class="table-responsive">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Variation</th>
+                    <th class="text-end">CA simulé</th>
+                    <th>Meilleur scénario</th>
+                    <th class="text-end">Net dirigeant optimal</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($sensibiliteCA as $s): ?>
+                <tr>
+                    <td><?= $s['variation'] > 0 ? '+' : '' ?><?= formaterPourcentage($s['variation']) ?></td>
+                    <td class="text-end"><?= formaterMontant($s['ca']) ?></td>
+                    <td><?= htmlspecialchars($s['meilleur_scenario'] ?? '—') ?></td>
+                    <td class="text-end"><?= formaterMontant($s['net_optimal'] ?? 0) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <h6 class="mt-3">Variation du taux d'IS (scénarios sociétés uniquement)</h6>
+    <div class="table-responsive">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Variation</th>
+                    <th class="text-end">Taux d'IS simulé</th>
+                    <th>Meilleur scénario société</th>
+                    <th class="text-end">Net dirigeant optimal</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($sensibiliteIS as $s): ?>
+                <tr>
+                    <td><?= $s['variation'] > 0 ? '+' : '' ?><?= formaterPourcentage($s['variation']) ?></td>
+                    <td class="text-end"><?= formaterPourcentage($s['taux_is']) ?></td>
+                    <td><?= htmlspecialchars($s['meilleur_scenario'] ?? '—') ?></td>
+                    <td class="text-end"><?= formaterMontant($s['net_optimal'] ?? 0) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <?php if (!empty($optimisations)): ?>
@@ -222,9 +339,24 @@ new Chart(document.getElementById('graphScenarios'), {
         labels: <?= json_encode(array_column($resultats, 'libelle')) ?>,
         datasets: [
             {
-                label: "Coût total entreprise",
-                data: <?= json_encode(array_column($resultats, 'cout_total_entreprise')) ?>,
+                label: "IS dû",
+                data: <?= json_encode(array_column($resultats, 'is_du')) ?>,
                 backgroundColor: '#c0392b'
+            },
+            {
+                label: "IR dirigeant",
+                data: <?= json_encode(array_column($resultats, 'ir_dirigeant')) ?>,
+                backgroundColor: '#e67e22'
+            },
+            {
+                label: "Cotisations (IPRES + CSS)",
+                data: <?= json_encode(array_map(fn($r) => $r['cotisations_ipres'] + $r['cotisations_css'], $resultats)) ?>,
+                backgroundColor: '#8e44ad'
+            },
+            {
+                label: "IRVM dividendes",
+                data: <?= json_encode(array_column($resultats, 'irvm_dividendes')) ?>,
+                backgroundColor: '#f1c40f'
             },
             {
                 label: "Net dirigeant",
@@ -233,7 +365,16 @@ new Chart(document.getElementById('graphScenarios'), {
             }
         ]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    options: {
+        responsive: true,
+        scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+        },
+        plugins: {
+            title: { display: true, text: "Répartition empilée : prélèvements + net dirigeant par scénario" }
+        }
+    }
 });
 </script>
 
